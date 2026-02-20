@@ -97,25 +97,33 @@ class _LyricViewState extends State<LyricView>
                   return ValueListenableBuilder(
                       valueListenable: scrollYNotifier,
                       builder: (context, double scrollY, child) {
-                        return CustomPaint(
-                          painter: LyricPainter(
-                            layout: layout!,
-                            onShowLineRectsChange: (rects) {
-                              showLineRects = rects;
-                            },
-                            style: style,
-                            playIndex: controller.activeIndexNotifiter.value,
-                            activeHighlightWidth: value,
-                            isSelecting: controller.isSelectingNotifier.value,
-                            scrollY: scrollY,
-                            onAnchorIndexChange: (index) {
-                              scheduleMicrotask(() {
-                                controller.selectedIndexNotifier.value = index;
-                              });
-                            },
-                            switchState: switchState,
+                        return AnimatedOpacity(
+                          opacity:
+                              controller.activeIndexNotifiter.value > scrollY
+                                  ? 0
+                                  : 1,
+                          duration: Duration(milliseconds: 400),
+                          child: CustomPaint(
+                            painter: LyricPainter(
+                              layout: layout!,
+                              onShowLineRectsChange: (rects) {
+                                showLineRects = rects;
+                              },
+                              style: style,
+                              playIndex: controller.activeIndexNotifiter.value,
+                              activeHighlightWidth: value,
+                              isSelecting: controller.isSelectingNotifier.value,
+                              scrollY: scrollY,
+                              onAnchorIndexChange: (index) {
+                                scheduleMicrotask(() {
+                                  controller.selectedIndexNotifier.value =
+                                      index;
+                                });
+                              },
+                              switchState: switchState,
+                            ),
+                            size: lyricSize,
                           ),
-                          size: lyricSize,
                         );
                       });
                 });
