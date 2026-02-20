@@ -34,7 +34,7 @@ class LyricPainter extends CustomPainter {
     required this.onShowLineRectsChange,
     required this.style,
   });
-
+  final double fadeValue = 1;
   @override
   void paint(Canvas canvas, Size size) {
     //溢出裁剪
@@ -226,25 +226,55 @@ class LyricPainter extends CustomPainter {
     bool isInAnchorArea,
   ) {
     final isActive = playIndex == index;
+
+    // =========================
+    // FADE LOGIC
+    // =========================
+    double opacity = 1.0;
+
+    if (index == playIndex - 1) {
+      // dòng vừa bị vượt qua -> fade
+      opacity = 1 - fadeValue;
+    } else if (index < playIndex - 1) {
+      // đã fade xong -> biến mất
+      opacity = 0.0;
+    }
+
+    if (opacity <= 0) {
+      return; // không vẽ nữa
+    }
+
     TextStyle replaceTextStyle(TextStyle style, Color color) {
+      final baseColor =
+          isSelecting && isInAnchorArea ? color : style.color ?? Colors.white;
+
       return style.copyWith(
-          color: isSelecting && isInAnchorArea ? color : style.color);
+        color: baseColor.withOpacity(opacity),
+      );
     }
 
     final painter = isActive ? metric.activeTextPainter : metric.textPainter;
-    // 获取原来的 TextSpan
+
     final oldSpan = painter.text!;
 
-    // 创建一个新的 TextSpan，只修改 color
     painter.text = TextSpan(
-      text: oldSpan.toPlainText(), // 保持文字不变
+      text: oldSpan.toPlainText(),
       style: replaceTextStyle(
         oldSpan.style!,
         layout.style.selectedColor,
       ),
     );
+
     canvas.save();
+
+    // áp opacity cho cả highlight và translation
+    canvas.saveLayer(
+      null,
+      Paint()..color = Colors.white.withOpacity(opacity),
+    );
+
     canvas.translate(calcContentAliginOffset(painter.width, size.width), 0);
+
     if (_debugLyric) {
       canvas.drawRect(
           Rect.fromLTWH(0, 0, painter.width, painter.height),
@@ -253,13 +283,17 @@ class LyricPainter extends CustomPainter {
                 ? Colors.blue.withAlpha(50)
                 : Colors.red.withAlpha(50));
     }
+
     final switchOffset = handleSwitchAnimation(
         canvas, metric, index, switchState, painter, size);
-    painter.paint(
-      canvas,
-      Offset(0, 0),
-    );
+
+    painter.paint(canvas, Offset.zero);
+
     painter.text = oldSpan;
+
+    // =========================
+    // Highlight
+    // =========================
     if (isActive) {
       drawHighlight(canvas, size, metric.activeMetrics,
           highlightTotalWidth: metric.words?.isNotEmpty == true
@@ -271,32 +305,45 @@ class LyricPainter extends CustomPainter {
       drawHighlight(canvas, size, metric.metrics,
           highlightTotalWidth: double.infinity);
     }
-    canvas.restore();
+
+    canvas.restore(); // restore layer
+    canvas.restore(); // restore translate
+
     final mainHeight = isActive ? metric.activeHeight : metric.height;
+
+    // =========================
+    // Translation
+    // =========================
     if (metric.line.translation?.isNotEmpty == true) {
       final tPainter = metric.translationTextPainter;
       final tOldSpan = tPainter.text;
+
       tPainter.text = TextSpan(
         text: metric.line.translation,
         style: replaceTextStyle(
           tPainter.text!.style!.copyWith(
-              color: isActive ? layout.style.translationActiveColor : null),
+              color: isActive
+                  ? layout.style.translationActiveColor
+                  : tPainter.text!.style!.color),
           layout.style.selectedTranslationColor,
         ),
       );
+
       canvas.save();
+
       canvas.translate(calcContentAliginOffset(tPainter.width, size.width), 0);
+
       canvas.translate(0, switchOffset);
+
       try {
         tPainter.paint(
           canvas,
           Offset(0, mainHeight + layout.style.translationLineGap),
         );
-      } catch (_) {
-        // 避免系统字体变更触发 assert(debugSize == size);
-      }
+      } catch (_) {}
+
       tPainter.text = tOldSpan;
-      canvas.translate(0, -switchOffset);
+
       canvas.restore();
     }
   }
