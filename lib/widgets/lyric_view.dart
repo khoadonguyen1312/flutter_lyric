@@ -97,11 +97,10 @@ class _LyricViewState extends State<LyricView>
                   return ValueListenableBuilder(
                       valueListenable: scrollYNotifier,
                       builder: (context, double scrollY, child) {
+                        final isSelecting =
+                            controller.isSelectingNotifier.value;
                         return AnimatedOpacity(
-                          opacity:
-                              controller.activeIndexNotifiter.value > scrollY
-                                  ? 0
-                                  : 1,
+                          opacity: isSelecting ? 0 : 1,
                           duration: Duration(milliseconds: 400),
                           child: CustomPaint(
                             painter: LyricPainter(
