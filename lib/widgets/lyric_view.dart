@@ -100,7 +100,7 @@ class _LyricViewState extends State<LyricView>
                         final isSelecting =
                             controller.isSelectingNotifier.value;
                         return AnimatedOpacity(
-                          opacity: isSelecting ? 0 : 1,
+                          opacity: 1,
                           duration: Duration(milliseconds: 400),
                           child: CustomPaint(
                             painter: LyricPainter(
