@@ -236,7 +236,7 @@ class LyricPainter extends CustomPainter {
       );
     }
 
-    if (index < playIndex) {
+    if (index < playIndex && index != switchState.exitIndex) {
       return;
     }
     final painter = isActive ? metric.activeTextPainter : metric.textPainter;
