@@ -236,6 +236,9 @@ class LyricPainter extends CustomPainter {
       );
     }
 
+    if (index < playIndex) {
+      return;
+    }
     final painter = isActive ? metric.activeTextPainter : metric.textPainter;
 
     final oldSpan = painter.text!;
@@ -250,7 +253,6 @@ class LyricPainter extends CustomPainter {
 
     canvas.save();
 
-    // áp opacity cho cả highlight và translation
     canvas.saveLayer(
       null,
       Paint()..color = Colors.white.withOpacity(1),
