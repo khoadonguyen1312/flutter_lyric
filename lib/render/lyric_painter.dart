@@ -34,7 +34,7 @@ class LyricPainter extends CustomPainter {
     required this.onShowLineRectsChange,
     required this.style,
   });
-  final double fadeValue = 1;
+  final double fadeValue = 0.7;
   @override
   void paint(Canvas canvas, Size size) {
     //溢出裁剪
@@ -227,29 +227,12 @@ class LyricPainter extends CustomPainter {
   ) {
     final isActive = playIndex == index;
 
-    // =========================
-    // FADE LOGIC
-    // =========================
-    double opacity = 1.0;
-
-    if (index == playIndex - 1) {
-      // dòng vừa bị vượt qua -> fade
-      opacity = 1 - fadeValue;
-    } else if (index < playIndex - 1) {
-      // đã fade xong -> biến mất
-      opacity = 0.0;
-    }
-
-    if (opacity <= 0) {
-      return; // không vẽ nữa
-    }
-
     TextStyle replaceTextStyle(TextStyle style, Color color) {
       final baseColor =
           isSelecting && isInAnchorArea ? color : style.color ?? Colors.white;
 
       return style.copyWith(
-        color: baseColor.withOpacity(opacity),
+        color: baseColor.withOpacity(0),
       );
     }
 
@@ -270,7 +253,7 @@ class LyricPainter extends CustomPainter {
     // áp opacity cho cả highlight và translation
     canvas.saveLayer(
       null,
-      Paint()..color = Colors.white.withOpacity(opacity),
+      Paint()..color = Colors.white.withOpacity(1),
     );
 
     canvas.translate(calcContentAliginOffset(painter.width, size.width), 0);
